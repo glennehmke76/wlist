@@ -1,0 +1,199 @@
+-- Step 1: Archive wlist as wlist_pre_avilist
+CREATE TABLE wlist_pre_avilist AS
+SELECT * FROM wlist;
+
+-- Step 2: Clear dcoredb.wlist
+DELETE FROM wlist;
+
+-- Step 4: Import data from wlist_ge.csv
+-- Assuming the PostgreSQL COPY command for importing
+-- Adjust the path to wherever wlist_ge.csv is located
+COPY wlist FROM '/Users/glennehmke/MEGA/Taxonomy/2025 changes/wlist_ge.csv' WITH (
+    FORMAT csv,
+    HEADER true,
+    DELIMITER ','
+);
+
+
+-- Step 3: Verify the import
+SELECT COUNT(*) FROM avilist_aust;`
+
+
+-- /Users/glennehmke/MEGA/py_proj/range/avilist_wlist_2025/import_avilist.py
+
+                                  -- Trim text fields in dcoredb.wlist table
+UPDATE wlist
+SET
+    -- Assuming these are the text fields in wlist - adjust as needed
+    taxon_scientific_name = TRIM(taxon_scientific_name),
+    taxon_name = TRIM(taxon_name),
+    family_scientific_name = TRIM(family_scientific_name),
+    family_name = TRIM(family_name),
+    t_order = TRIM(t_order),
+    taxon_level = TRIM(taxon_level),
+    population = TRIM(population),
+    alist_change_note = TRIM(alist_change_note)
+WHERE
+    -- Only update rows where at least one text field has leading/trailing whitespace
+    taxon_scientific_name != TRIM(taxon_scientific_name) OR
+    taxon_name != TRIM(taxon_name) OR
+    family_scientific_name != TRIM(family_scientific_name) OR
+    family_name != TRIM(family_name) OR
+    t_order != TRIM(t_order) OR
+    taxon_level != TRIM(taxon_level) OR
+    population != TRIM(population) OR
+    (alist_change_note IS NOT NULL AND alist_change_note != TRIM(alist_change_note));
+
+-- Trim text fields in dcoredb.avilist_aust table
+UPDATE avilist_aust
+SET
+    -- Assuming these are the text fields in avilist_aust - adjust as needed
+    taxon_scientific_name = TRIM(taxon_scientific_name),
+    taxon_name = TRIM(taxon_name),
+    family_scientific_name = TRIM(family_scientific_name),
+    family_name = TRIM(family_name),
+    t_order = TRIM(t_order),
+    taxon_level = TRIM(taxon_level),
+    population = TRIM(population)
+WHERE
+    -- Only update rows where at least one text field has leading/trailing whitespace
+    taxon_scientific_name != TRIM(taxon_scientific_name) OR
+    taxon_name != TRIM(taxon_name) OR
+    family_scientific_name != TRIM(family_scientific_name) OR
+    family_name != TRIM(family_name) OR
+    t_order != TRIM(t_order) OR
+    taxon_level != TRIM(taxon_level) OR
+    population != TRIM(population);
+
+-- Report how many rows were updated in each table
+SELECT 'wlist rows with trimmed text fields' AS description,
+       COUNT(*) AS count
+FROM wlist
+WHERE
+    taxon_scientific_name != TRIM(taxon_scientific_name) OR
+    taxon_name != TRIM(taxon_name) OR
+    family_scientific_name != TRIM(family_scientific_name) OR
+    family_name != TRIM(family_name) OR
+    t_order != TRIM(t_order) OR
+    taxon_level != TRIM(taxon_level) OR
+    population != TRIM(population) OR
+    (alist_change_note IS NOT NULL AND alist_change_note != TRIM(alist_change_note));
+
+SELECT 'avilist_aust rows with trimmed text fields' AS description,
+       COUNT(*) AS count
+FROM avilist_aust
+WHERE
+    taxon_scientific_name != TRIM(taxon_scientific_name) OR
+    taxon_name != TRIM(taxon_name) OR
+    family_scientific_name != TRIM(family_scientific_name) OR
+    family_name != TRIM(family_name) OR
+    t_order != TRIM(t_order) OR
+    taxon_level != TRIM(taxon_level) OR
+    population != TRIM(population);
+
+---------- return any unmatched records from wlist to alist.
+
+-- Return unmatched records from wlist to avilist_aust
+-- First trying to match on taxon_scientific_name, then on taxon_name
+
+
+
+
+
+-- Alternatively, without creating a temporary table:
+SELECT w.*
+FROM wlist w
+WHERE NOT EXISTS (
+    -- No match on taxon_scientific_name
+    SELECT 1
+    FROM avilist_aust a
+    WHERE w.taxon_scientific_name = a.taxon_scientific_name
+)
+AND NOT EXISTS (
+    -- No match on taxon_name
+    SELECT 1
+    FROM avilist_aust a
+    WHERE w.taxon_name = a.taxon_name
+);
+
+
+SELECT
+
+FROM wlist w
+WHERE NOT EXISTS (
+    -- No match on taxon_scientific_name
+    SELECT 1
+    FROM avilist_aust a
+    WHERE w.taxon_scientific_name = a.taxon_scientific_name
+)
+
+SELECT
+  w.alist_change,
+  w.alist_change_note,
+  w.taxon_id,
+  w.taxon_name,
+  w.taxon_scientific_name,
+  w.population,
+  w.taxon_sort
+FROM wlist w
+WHERE alist_change is not null
+ORDER BY w.taxon_sort
+
+
+
+SELECT
+  CASE
+    WHEN w.alist_change = 1 THEN 'Implemented'
+    WHEN w.alist_change = 0 THEN 'Not implemented'
+    WHEN w.alist_change = 0.5 THEN 'Partially implemented'
+    ELSE NULL END AS "AviList change"
+  w.alist_change_note,
+  w.taxon_id,
+  w.taxon_name,
+  w.taxon_scientific_name,
+  w.population,
+  rl.category AS 'Australian status 2020'
+  w.taxon_sort
+FROM wlist w
+JOIN lut_rli rl ON w.rli_2020 = rl.id
+WHERE alist_change IS NOT NULL
+ORDER BY w.taxon_sort
+
+-- status mismatch in aust list
+SELECT
+  CASE
+    WHEN w.alist_change = 1 THEN 'Implementable'
+    WHEN w.alist_change = 0 THEN 'Not implementable'
+    WHEN w.alist_change = 0.5 THEN 'Partially implementable'
+    ELSE NULL END alist_change,
+  w.alist_change_note,
+  w.taxon_sort,
+  w.is_ultrataxon,
+  w.taxon_level,
+  w.sp_id,
+  w.taxon_id,
+  w.taxon_name,
+  w.taxon_scientific_name,
+  w.family_name,
+  w.family_scientific_name,
+  w.t_order AS order,
+  w.population,
+  w.rli_1990,
+  w.rli_2000,
+  w.rli_2010,
+  w.rli_2020,
+  rl.category AS australian_status_2020,
+  CASE
+    WHEN rl.category != a.australian_iucn_redliststatus_2020 THEN false
+    ELSE true
+  END AS "status_match",
+  a.australian_iucn_redliststatus_2020 as alist_a_status,
+  a.extinct_or_possibly_extinct,
+  w.bird_group,
+  w.avibase_id
+FROM wlist w
+LEFT JOIN lut_rli rl ON w.rli_2020 = rl.id
+LEFT JOIN avilist_aust a ON w.taxon_scientific_name = a.taxon_scientific_name
+ORDER BY w.taxon_sort
+;
+

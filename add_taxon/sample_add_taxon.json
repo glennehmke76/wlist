@@ -1,0 +1,34 @@
+[
+  {
+    "taxon_sort_target": 1729,
+    "is_ultrataxon": 1,
+    "taxon_level": "ssp",
+    "taxon_name": "Common Redpoll (ssp)",
+    "taxon_scientific_name": "Acanthis flammea cabaret",
+    "family_name": "Old World Finches",
+    "family_scientific_name": "Fringillidae",
+    "order": "Passeriformes",
+    "population": "Introduced"
+  },
+  {
+    "taxon_sort_target": 2000,
+    "is_ultrataxon": 0,
+    "taxon_level": "species",
+    "sp_id": 5123,
+    "taxon_id": "u5123",
+    "taxon_name": "Some Bird",
+    "taxon_scientific_name": "Genus species",
+    "family_name": "Family",
+    "family_scientific_name": "FamilySci",
+    "order": "Order",
+    "population": "Native",
+    "aust_rli_1990": 1990,
+    "aust_rli_2000": 2000,
+    "aust_rli_2010": 2010,
+    "aust_rli": 2020,
+    "bird_group": "Subgroup",
+    "supplementary": 0,
+    "avibase_id": "ABCD-1234",
+    "reference": "Ref text"
+  }
+]
