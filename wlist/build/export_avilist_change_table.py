@@ -2,9 +2,9 @@
 """
 Export a formatted multi-page PDF table of Avilist change statuses from the wlist table.
 
-- Connects via wlist.package_wlist.get_db_connection()
+- Connects via wlist.build.package_wlist (re-exports wlist.core.db.get_db_connection)
 - Executes the provided SQL (see SQL constant below)
-- Outputs to: /Users/glennehmke/MEGA/Taxonomy/wlist/wlist_avilist_changes.pdf
+- Outputs to: <domain repo root>/data_package/build/wlist_avilist_changes.pdf
 - Formatting: header band, zebra rows, grid lines; "Avilist change note" column wrapped.
 
 Requirements:
@@ -14,7 +14,7 @@ DB connection env vars (delegated to package_wlist):
   DCORE_HOST, DCORE_DB, DCORE_USER, DCORE_PASSWORD, DCORE_PORT
 
 Run:
-  python -m wlist.export_avilist_change_table
+  python -m wlist.build.export_avilist_change_table
 """
 #%%
 from __future__ import annotations
@@ -44,7 +44,9 @@ except Exception:  # pragma: no cover
     import package_wlist as pw  # type: ignore
 
 # Output
-OUTPUT_DIR = "/Users/glennehmke/MEGA/Taxonomy/wlist/package"
+# domain repo root = two levels up from this file (wlist/wlist/build/ -> wlist/)
+_DOMAIN_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OUTPUT_DIR = os.path.join(_DOMAIN_ROOT, "data_package", "build")
 PDF_PATH = os.path.join(OUTPUT_DIR, "wlist_avilist_changes.pdf")
 
 # SQL from issue description

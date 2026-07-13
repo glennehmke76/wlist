@@ -20,19 +20,19 @@ Commands (CLI)
 - Validate only (no changes). Exits 0 if OK, 4 if validation fails.
 
 ```bash
-python -m wlist.validate_wlist_update --schema public --table wlist --edited-table wlist_edited
+python -m wlist.ingest.validate_wlist_update --schema public --table wlist --edited-table wlist_edited
 ```
 
 - Or via the ingest module:
 
 ```bash
-python -m wlist.ingest_edited_wlist --schema public --source-table wlist --table wlist_edited --validate-only
+python -m wlist.ingest.ingest_edited_wlist --schema public --source-table wlist --table wlist_edited --validate-only
 ```
 
 - Ingest edited Excel to a staging table matching the live schema:
 
 ```bash
-python -m wlist.ingest_edited_wlist \
+python -m wlist.ingest.ingest_edited_wlist \
     --xlsx "/Users/glennehmke/Downloads/wlist.xlsx" \
     --schema public \
     --source-table wlist \
@@ -42,7 +42,7 @@ python -m wlist.ingest_edited_wlist \
 - Ingest and then archive+replace the live table in one go:
 
 ```bash
-python -m wlist.ingest_edited_wlist \
+python -m wlist.ingest.ingest_edited_wlist \
     --xlsx /path/to/wlist.xlsx \
     --schema public --source-table wlist --table wlist_edited \
     --archive-and-update --backup-schema backup --date-suffix 20260317
@@ -67,13 +67,13 @@ Examples (CLI)
 - Quick safety check before any changes:
 
 ```bash
-python -m wlist.validate_wlist_update --schema public --table wlist --edited-table wlist_edited
+python -m wlist.ingest.validate_wlist_update --schema public --table wlist --edited-table wlist_edited
 ```
 
 - One-shot ingest + archive + replace using today’s date:
 
 ```bash
-python -m wlist.ingest_edited_wlist --xlsx /Users/glennehmke/Downloads/wlist.xlsx \
+python -m wlist.ingest.ingest_edited_wlist --xlsx /Users/glennehmke/Downloads/wlist.xlsx \
     --schema public --source-table wlist --table wlist_edited \
     --archive-and-update --backup-schema backup
 ```
@@ -81,7 +81,7 @@ python -m wlist.ingest_edited_wlist --xlsx /Users/glennehmke/Downloads/wlist.xls
 - Use a custom date suffix (e.g., for 2026-03-17):
 
 ```bash
-python -m wlist.ingest_edited_wlist --xlsx /path/to/wlist.xlsx \
+python -m wlist.ingest.ingest_edited_wlist --xlsx /path/to/wlist.xlsx \
     --schema public --source-table wlist --table wlist_edited \
     --archive-and-update --backup-schema backup --date-suffix 20260317
 ```

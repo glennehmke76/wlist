@@ -1,0 +1,4 @@
+# Include only runtime SQL in source distributions
+recursive-include wlist/resources/sql/runtime *.sql
+# Do not include ops in sdists
+prune wlist/resources/sql/ops

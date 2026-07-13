@@ -4,16 +4,16 @@ figshare_create_draft.py
 ========================
 Convenience wrapper to create a private Figshare draft and upload files
 without publishing. This simply forwards to create_and_upload() defined in
-wlist/package/figshare_submit.py, while letting you pass a token on the CLI.
+wlist/data_package/figshare/figshare_submit.py, while letting you pass a token on the CLI.
 
 Usage
 -----
 - Preferred: set env var and run the underlying script directly:
     export FIGSHARE_TOKEN="<your_token>"
-    python wlist/package/figshare_submit.py --create
+    python wlist/data_package/figshare/figshare_submit.py --create
 
 - Or use this wrapper to pass the token inline:
-    python wlist/package/figshare_create_draft.py --token <your_token>
+    python wlist/data_package/figshare/figshare_create_draft.py --token <your_token>
 
 Notes
 -----
@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Create a private Figshare draft item and upload files (does NOT publish).",
         epilog=(
-            "This is a thin wrapper around wlist/package/figshare_submit.py. "
+            "This is a thin wrapper around wlist/data_package/figshare/figshare_submit.py. "
             "You can run that script directly with --create as well."
         ),
     )

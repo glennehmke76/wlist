@@ -1,16 +1,15 @@
 Figshare submission workflow (read this before running figshare_submit.py)
 
-Where to actually run this from (added 2026-07-05, ADR-003)
+Where to actually run this from (updated 2026-07-13, ADR-005/007 — collapses the
+former ADR-003 two-location split)
 - `figshare_submit.py` here is the canonical, version-controlled source — edit it here.
-- But it looks for its FILES list (the packaged CSVs/PDF/SQL/DQA report) next to itself
-  (`PACKAGE_DIR = Path(__file__).parent`), and those built data outputs live in
-  `/Users/glennehmke/MEGA/Taxonomy/wlist/package/` (where `package_wlist.py`'s `OUTPUT_DIR`
-  writes them), not in this git repo.
-- So before running `--create`/`--publish`, sync this file to
-  `MEGA/Taxonomy/wlist/package/figshare_submit.py` (overwrite the copy there) and run it
-  from that folder. Don't edit the two copies independently — this repo's copy is the
-  one to change; the other is a run-time mirror.
-- See wlist strategy `strategy/02_wlist_dev_log.md` ADR-003 for the full reasoning.
+- It looks for its FILES list (the packaged CSVs/PDF/SQL/DQA report) in
+  `data_package/build/` (`PACKAGE_DIR = Path(__file__).parent.parent / "build"`), which
+  is now inside this git repo — `package_wlist.py`'s `OUTPUT_DIR` writes there directly.
+- No more syncing a second copy to `Taxonomy/wlist/package/` — run it straight from
+  `data_package/figshare/` in this repo.
+- See wlist strategy `strategy/02_wlist_dev_log.md` ADR-003 (original split) and ADR-007
+  (this session's consolidation) for the full reasoning.
 
 Summary
 - Yes — by design. The --create mode only creates the item and uploads the files; it does not publish. Figshare holds it as a private draft in your account, invisible to anyone else, with no DOI minted yet.
@@ -23,7 +22,7 @@ Prerequisites
 - Requires: pip install requests
 
 Where the script lives
-- Script path: wlist/package/figshare_submit.py
+- Script path: wlist/data_package/figshare/figshare_submit.py
 - Run commands from that directory or provide the path to the script when invoking Python.
 
 The flow
@@ -68,7 +67,7 @@ Important notes
 Troubleshooting
 - Missing token: The script exits with instructions if FIGSHARE_TOKEN is not set.
 - API errors: The script prints the HTTP code and Figshare error text and then exits.
-- File not found: In dry run or create mode, the script reports any missing files it expects in wlist/package. Add/rename files as needed and re-run.
+- File not found: In dry run or create mode, the script reports any missing files it expects in data_package/build/. Add/rename files as needed and re-run.
 
 Quick reference
 - Dry run:    python figshare_submit.py
@@ -107,7 +106,7 @@ import runpy
 os.environ["FIGSHARE_TOKEN"] = "your_token_here"
 
 # 1) Load the script as a module namespace
-ns = runpy.run_path("wlist/package/figshare_submit.py")
+ns = runpy.run_path("wlist/data_package/figshare/figshare_submit.py")
 
 # 2) Inspect metadata and files locally (no API calls)
 ns["dry_run"]()

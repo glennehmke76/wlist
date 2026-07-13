@@ -1,0 +1,58 @@
+﻿field,type,description,iri
+taxonSort,integer,Sort order for taxa,
+isUltrataxon,smallint,"1 if ultrataxon, NULL otherwise",
+taxonLevel,varchar,"Taxonomic level label - values:
+
+- sp; species
+
+- ssp; subspecies","http://linked.data.gov.au/def/tern-cv/1e4d7110-5f07-45ec-98e7-738236a8d8e0
+"
+spId,smallint,Unique species identifier,
+taxonId,varchar,Unique identifier for each taxon – primary key,http://linked.data.gov.au/def/tern-cv/7f07d217076bc6768f8b359529d1e6ffc07bdfb960e6b6b1835790b20d1fa562
+taxonName,varchar,Taxon common name,
+taxonScientificName,varchar,Taxon scientific name,http://linked.data.gov.au/def/tern-cv/0fed9f108edb64ca5cb8c342a946db5a2a1941ac514722514a452fba11fd836f
+familyName,varchar,Family common name,
+familyScientificName,varchar,Family scientific name,http://linked.data.gov.au/def/tern-cv/637486d8-e78e-46d1-9faf-391aca92164d
+order,varchar,Taxonomic order,
+avibaseId,varchar,External Avibase identifier,
+notes,text,General notes,
+birdGroup,varchar,"Spatial bird group - values:
+
+- Terrestrial; Taxa with distributions characterised by irregular occurrence patterns forming polygonal geometries with relatively low edge-interior ratios and which depend on terrestrial habitats (as defined by Garnett et al. 2015). 
+
+- Wetland; Taxa with distributions characterised by irregular occurrence patterns forming polygonal geometries with relatively low edge-interior ratios and which depend on habitats of inland waters (as defined by Garnett et al. 2015). 
+
+- Shoreline (migratory/resident); Taxa associated with linear habitats (shorelines of coasts or inland waters) 
+
+- Marine; Taxa with distributions characterised by irregular occurrence (point) patterns forming polygonal geometries, and which feed primarily in Marine habitats (as defined by Garnett et al. 2015).",
+population,varchar,"Population qualifier  - values:
+
+- Australian; Australian breeding population of taxa that also breed elsewhere. 
+
+- Endemic: Taxa that occur in Australia and nowhere else. 
+
+- Endemic (breeding only); Taxa which breed only in Australia, but which migrate /disperse frequently elsewhere. 
+
+- Extinct (endemic); Taxa that occurred naturally only in Australia at the time of European settlement (~1788) but are now extinct. 
+
+- Extinct (Australia only); Taxa that occurred naturally in Australia at the time of European settlement (~1788) but are now extinct in Australia, but which persist elsewhere. 
+
+- Failed introduction; Taxa introduced to Australia for which wild populations have not persisted (generally by acclimatisation societies early in European settlement).
+
+- Introduced; Taxa that have been introduced to Australia since 1788 and established self-sustaining wild populations 
+
+- Non-breeding; Taxa that occur regularly in Australia but breed elsewhere. 
+
+- Vagrant; Non-breeding taxa that cross into Australian jurisdictional boundaries in insignificant numbers – i.e. <0.1% of the estimated global population. 
+
+Vagrant (from NZ introduction); Vagrants derived from populations successfully introduced to New Zealand. ",
+coastalRange,varchar,"Coastal descriptor - values:
+
+- Obligate; Strictly coastal, never found away from coasts.
+
+- Facultative; Principally coastal, but less frequently found inland. ",
+austRli1990,smallint,Retrospecitive Australian Red List Index code (1990),
+austRli2000,smallint,Retrospecitive Australian Red List Index code (2000),
+austRli2010,smallint,Retrospecitive Australian Red List Index code (2010),
+austRli,smallint,Current Australian Red List Index code,
+austRliStatusDesc,varchar,Current Red list index description,

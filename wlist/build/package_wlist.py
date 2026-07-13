@@ -2,7 +2,8 @@
 """
 Package and export wlist data to CSVs and an SQL dump (with CREATE TABLE + INSERTs, no indexes/keys).
 
-- Output directory (absolute): /Users/glennehmke/MEGA/Taxonomy/wlist/package
+- Output directory: <domain repo root>/data_package/build (ADR-005; was the
+  out-of-repo Taxonomy/wlist/package until this session's consolidation)
 - CSV format: UTF-8 with text cells quoted (numbers unquoted)
 - SQL dump: includes CREATE TABLE statements (with PK for wlist) and INSERT rows.
 
@@ -21,35 +22,27 @@ from typing import Dict, Tuple
 
 import shutil
 import subprocess
-import psycopg2
 import pandas as pd
 from types import SimpleNamespace
 
-# Try package and script import styles for wlist_dqa
+# Try package and script import styles for wlist_dqa / core.db
 try:
     from . import wlist_dqa as wlist_dqa
+    from ..core.db import get_db_connection
 except Exception:  # pragma: no cover
     import wlist_dqa as wlist_dqa
+    from wlist.core.db import get_db_connection
 
 #%%
-OUTPUT_DIR = "/Users/glennehmke/MEGA/Taxonomy/wlist/package"
+# domain repo root = two levels up from this file (wlist/wlist/build/ -> wlist/)
+_DOMAIN_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OUTPUT_DIR = os.path.join(_DOMAIN_ROOT, "data_package", "build")
 CORE_CSV = os.path.join(OUTPUT_DIR, "wlist_core.csv")
 RLI_CSV = os.path.join(OUTPUT_DIR, "lut_rli.csv")
 AVILIST_CHANGES_CSV = os.path.join(OUTPUT_DIR, "avilist_changes.csv")
 SQL_DUMP = os.path.join(OUTPUT_DIR, "wlist_core.sql")
 DDL_EXPORT = os.path.join(OUTPUT_DIR, "wlist.ddl")
 DQA_REPORT = os.path.join(OUTPUT_DIR, "wlist_dqa_report.md")
-
-#%%
-def get_db_connection():
-    host = os.getenv("DCORE_HOST", "localhost")
-    dbname = os.getenv("DCORE_DB", "dcoredb")
-    user = os.getenv("DCORE_USER", "glennehmke")
-    # No hardcoded fallback (ecosystem D1 / wlist ADR-002): if DCORE_PASSWORD isn't
-    # set, password=None lets psycopg2 fall back to ~/.pgpass.
-    password = os.getenv("DCORE_PASSWORD")
-    port = int(os.getenv("DCORE_PORT", "5432"))
-    return psycopg2.connect(host=host, dbname=dbname, user=user, password=password, port=port)
 
 #%%
 # Queries from issue description

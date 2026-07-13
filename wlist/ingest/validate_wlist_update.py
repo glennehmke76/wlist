@@ -2,7 +2,7 @@
 Validate that an edited wlist table can safely replace the live table.
 
 Usage examples:
-  python -m wlist.validate_wlist_update --schema public --table wlist --edited-table wlist_edited
+  python -m wlist.ingest.validate_wlist_update --schema public --table wlist --edited-table wlist_edited
 
 Exit codes:
   0 = validation OK
@@ -14,11 +14,11 @@ import argparse
 from typing import Sequence
 
 try:
-    from .package_wlist import get_db_connection
+    from ..core.db import get_db_connection
     from .ingest_edited_wlist import validate_wlist_update
 except Exception:
     # When run directly
-    from package_wlist import get_db_connection  # type: ignore
+    from wlist.core.db import get_db_connection  # type: ignore
     from ingest_edited_wlist import validate_wlist_update  # type: ignore
 
 

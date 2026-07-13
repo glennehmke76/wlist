@@ -27,8 +27,9 @@ A **strategic record of logic and decision-making** for the `wlist` package. The
 | ADR-002 | Hardcoded DB password — redact + rotate? | Redacted in files (Done); **history scrub still needed from Glenn's own terminal** |
 | ADR-003 | `figshare_submit.py` cross-location gap | Done |
 | ADR-004 | Terminology: domain / package / data package | Accepted (links up to ecosystem D-061) |
-| ADR-005 | Consolidate into `py_proj/wlist`; adopt trends target layout | Accepted — skeleton started; code moves staged |
-| ADR-006 | Formalise the figshare **data package** | Accepted — membership rule set; build retarget staged |
+| ADR-005 | Consolidate into `py_proj/wlist`; adopt trends target layout | Done — executed 2026-07-13 (Claude Code, Track B) |
+| ADR-006 | Formalise the figshare **data package** | Done — `data_package/` structure executed 2026-07-13 |
+| ADR-007 | Track B execution: SQL classification, code package refactor, `OUTPUT_DIR` retarget | Done — steps 1–3, 5 executed 2026-07-13 (Claude Code); step 4 done (Glenn, curated files copied + figshare file resolution fixed); step 6 (git remote) still open |
 
 ---
 
@@ -153,12 +154,146 @@ A **strategic record of logic and decision-making** for the `wlist` package. The
 
 ---
 
+## ADR-007 — Track B execution: SQL classification, code package refactor, `OUTPUT_DIR` retarget
+
+- **Date:** 2026-07-13
+- **Status:** Accepted, executed (Claude Code, this session — hand-off
+  `strategy/_handoffs/20260713_wlist_rearch_trackB_HANDOFF.md`). Steps 1–3 and 5 done
+  in full; step 4 (cross-mount copy of existing built outputs) and step 6 (git remote)
+  remain for Glenn's terminal — Cowork's FUSE mount blocks `unlink`/`rmdir` and this
+  sandbox has no `dcoredb` access, so cross-mount/deletes and DB verification were the
+  reason for the hand-off in the first place.
+- **Context:** ADR-005/006 set the target layout and data-package structure but staged
+  the DB-dependent and terminal-dependent steps. This entry records what was actually
+  found and done when those steps were executed against the live `dcoredb`.
+
+- **Step 1 — SQL classification (verified against live `dcoredb`):**
+  - Confirmed deployed, moved to `resources/sql/runtime/`: `w_add_row.sql` (proc
+    `wlist_add_row`), `w_delete_row.sql` (proc `wlist_delete_row`), `w_is_core.sql`
+    (trigger fn `update_is_core`), `w_check_ssp_required.sql` (trigger fn
+    `update_ssp_required`) — all four bodies matched `pg_get_functiondef` exactly.
+  - Moved to `resources/sql/ops/` (one-off/diagnostic/import/reconciliation, not the
+    deployed source of truth): `avilist_import.sql`, `AviList_wlist_integration.sql`,
+    `WLAB.sql`, `WLAB_add taxon and shuffle sort.sql`, `add or match abd fields to
+    wlist.sql`, `archive_and_update wlist.sql`, `import and match ala through
+    galah.sql`, `version reconciliation.sql`, `ds_sensitive_reco.sql`,
+    `wlist_al_2025.sql`.
+  - **Correction to the provisional mapping:** `wlist_package.sql` was guessed
+    "likely runtime" in `03_wlist_architecture_target.md` §6 but is actually **dead** —
+    moved to `_archive/wlist_package.sql` instead. It is not deployed (no matching
+    function/view), not read by any script (`package_wlist.py` has its own inline,
+    since-evolved copy of the same queries), and its embedded DDL is stale against the
+    live `wlist` table (missing ~20 columns added since, e.g. `bird_sub_group`,
+    `is_coastal`, `ssp_required`).
+  - **Surprises (not actioned further, flagged for a future pass):**
+    (a) `wlist_ddl.sql`, named in `wlist_dqa.py` and listed as "likely runtime" in the
+    target spec, does not exist anywhere in the repo or its history — `wlist_dqa.py`
+    silently returns `[]` when it's missing, so this has been a no-op, not a crash.
+    (b) `resources/sql/ops/WLAB.sql` and `resources/sql/ops/ds_sensitive_reco.sql` each
+    embed a **currently-live** view (`wlist_sp`; `ds_sensitive_reco`) as the last of
+    several superseded iterations in an otherwise scratch file — the live source of
+    truth for those two views isn't a clean canonical file. Candidate follow-up:
+    extract to `runtime/` per the D-020/D-021 promotion rule. Not done here (scope).
+  - See `resources/sql/README.md` for the full classification writeup.
+
+- **Step 2 — code package refactor:** Created `wlist/wlist/{core,ingest,build,tools}/`
+  + `__init__.py`s; moved `add_taxon/` and `resources/` inside `wlist/wlist/`. Extracted
+  `get_db_connection` (previously duplicated/imported from `package_wlist.py`) into
+  `wlist/wlist/core/db.py`; `package_wlist.py` now imports it rather than defining its
+  own copy. Did **not** consolidate onto a `sys_py` shared connector (D-015) — checked,
+  and no `sys_py` package with a ready connector currently exists in the ecosystem to
+  consolidate onto; still deferred. Fixed cross-module imports broken by the
+  ingest/build/tools split (e.g. `export_wlist_extended.py` and
+  `find_unmatched_taxon_ids.py` importing `package_wlist` across the new package
+  boundary). Fixed `wlist_dqa.py`'s DDL parser path to point at
+  `resources/sql/runtime/wlist_ddl.sql` (per the hand-off) — though per the Step 1
+  surprise, that file doesn't exist yet, so this is a path fix, not a functional one.
+  **Found and fixed one coupling the hand-off didn't call out:** `wlist/tools/backup.py`
+  computed its backup source folder as `Path(__file__).resolve().parent`, which was
+  correct when `backup.py` lived at the repo root but silently pointed at the wrong
+  folder (and would have failed its own sanity check) once moved three levels deeper
+  into `wlist/tools/`. Fixed to `.parents[2]` (domain repo root) and updated the sanity
+  check's expected marker file for the new layout; verified with `--dry-run`. Verified
+  every moved module still imports and a live `get_db_connection()` query succeeds.
+  Added `pyproject.toml` + `MANIFEST.in` mirroring `trends`.
+
+- **Step 3 — `OUTPUT_DIR` retarget:** `package_wlist.py` and
+  `export_avilist_change_table.py`'s `OUTPUT_DIR` now resolve to
+  `<domain repo root>/data_package/build/` (computed from `__file__`, not hard-coded).
+  `figshare_submit.py`'s `PACKAGE_DIR` now points at `data_package/build/` (a sibling of
+  `data_package/figshare/`, where the script itself now lives) instead of its own
+  folder — collapsing the ADR-003 split. Ran an actual (not simulated) build via
+  `python -m wlist.build.package_wlist` against live `dcoredb`: fetched 1,740 core
+  rows, 6 RLI categories, 139 Avilist changes, and wrote `wlist_core.csv`,
+  `lut_rli.csv`, `avilist_changes.csv`, `wlist_core.sql`, `wlist.ddl`, and
+  `wlist_dqa_report.md` into `data_package/build/` — confirmed inside the repo.
+  **Decision:** `data_package/build/` is git-ignored (generated, reproducible from
+  `dcoredb`); only a `.gitkeep` and the figshare tooling under `data_package/figshare/`
+  are tracked.
+  **Surprise found comparing against the actual existing deposit:** the real figshare
+  `FILES` list in `figshare_submit.py` includes several items that are **not**
+  generated by `package_wlist.py` and existed only as hand-authored files in
+  `Taxonomy/wlist/package/` — a deposit-facing `README.md` (with version/DOI/license
+  header, distinct from this repo's `README.md` and from `DATA_PACKAGE.md`), `A
+  working list of Australian birds.pdf`/`.docx`, `wlist_core_data_dictionary.csv`, and
+  `wlist_lut_rli_data_dictionary.csv`. These are curated, not reproducible by re-running
+  the build.
+
+- **Step 4 (partial) — Glenn copied the curated deposit files** into `data_package/`
+  (tracked, not the git-ignored `build/`): `README_figshare.md` (renamed from
+  `README.md` to avoid clashing with the repo/code-package READMEs), `A working list of
+  Australian birds.pdf`, `wlist_core_data_dictionary.csv`,
+  `wlist_lut_rli_data_dictionary.csv`. **Follow-up fix (Claude Code):**
+  `figshare_submit.py`'s `FILES` loop previously resolved every filename under a single
+  `PACKAGE_DIR`, which broke once curated files and generated files lived in different
+  folders. Replaced with `BUILD_DIR` (generated) + `DATA_PACKAGE_DIR` (curated) plus a
+  `CURATED_FILES` name-mapping dict and a `resolve_file()` helper so both `dry_run()`
+  and `create_and_upload()` find the right file regardless of which folder it's in.
+  Verified: ran `python -m wlist.build.export_avilist_change_table` (the one generated
+  file not yet built) and then `dry_run()` — all 11 files in `FILES` resolve and show
+  correct sizes (2.2 MB total). Remaining from Step 4: cross-mount `.xlsx`/`.docx`/
+  `add_taxon/`/`requirements.txt` copies in `Taxonomy/wlist/package/` were deliberately
+  **not** brought across (superseded or excluded per ADR-006) — worth a final glance
+  from Glenn to confirm nothing else in that folder needs preserving before it reverts
+  to source-data-only per ADR-005.
+
+- **Step 5 — data package field dictionary:** `wlist_package.md` → `git mv`'d to
+  `data_package/DATA_PACKAGE.md`; updated its stale path references (old `OUTPUT_DIR`,
+  `python -m wlist.package_wlist` → `wlist.build.package_wlist`) and added the
+  `wlist_ddl.sql`-doesn't-exist note from Step 1.
+
+- **Consequences:** the domain repo (`py_proj/wlist`) is now internally consistent with
+  the `trends` exemplar layout end-to-end for everything Claude Code could verify/run.
+  Steps 4 (copy real built outputs + curated deposit files across from
+  `Taxonomy/wlist/package/`, terminal `cp`) and 6 (git remote push) remain — both need
+  Glenn's terminal per the original hand-off's env constraint.
+- **Links:** ADR-004/005/006; ecosystem D-020/D-021 (currency), D-015 (DB-access
+  consolidation, still deferred — no `sys_py` connector exists yet to consolidate onto);
+  `resources/sql/README.md`; `03_wlist_architecture_target.md` §6/§7;
+  `strategy/_handoffs/20260713_wlist_rearch_trackB_HANDOFF.md`.
+
+---
+
 ## Open threads (candidates for future ADRs)
 
 - **`backup.py` vs. `ingest_edited_wlist.py --archive-and-update`'s built-in backup** — possible duplicate/overlapping backup mechanisms; not yet reconciled.
 - **`wlist_backup/` (in `applied_projects`, not moved with the package)** — needs a "does this belong in `wlist/_archive/`, or is it a separate backup-tier concern" decision.
 - **`sql/wlist_al_2025.sql.bak`** — D-020/D-021 quarantine candidate, not yet actioned.
 - **`taxonomy/avilist_wlist_2025/` notebook trio** — looks like a one-off analysis run; candidate for a `demos/`-style home once confirmed (range precedent).
-- **DB-object verification** — repo `sql/*.sql` vs. deployed `dcoredb` procedures not yet checked (Claude Code territory — Cowork can't reach the live DB).
+- ~~**DB-object verification**~~ — done, ADR-007 (2026-07-13).
 - **Ecosystem `D12`** (many parallel `wlist_*` tables in `public`, needs a canonical-table + changelog design) — now squarely this package's remit.
-- **Package formalisation** (`pyproject`/`resources/sql/{runtime,ops}` layout matching `sites`/`trends`) — deferred, Track B in `00_strategy.md`.
+- ~~**Package formalisation**~~ — done, ADR-007 (2026-07-13).
+- **`wlist_ddl.sql` doesn't exist** (ADR-007) — `wlist_dqa.py` and `DATA_PACKAGE.md` both
+  reference it as a repository DDL source file; it's never existed. Either author it
+  from the live `wlist`/`lut_rli` schema and promote it to `resources/sql/runtime/`, or
+  update the docs/parser to stop implying it does.
+- **Extract `wlist_sp` and `ds_sensitive_reco` to clean `runtime/` sources** (ADR-007) —
+  both are currently-deployed views whose only source is the last of several
+  superseded iterations inside otherwise-scratch `ops/` files (`WLAB.sql`,
+  `ds_sensitive_reco.sql`). D-020/D-021 promotion rule candidate.
+- ~~**Deposit content split: curated vs. generated**~~ — resolved, ADR-007 (2026-07-13):
+  curated files now live tracked under `data_package/` (`README_figshare.md`, the PDF,
+  two data-dictionary CSVs); `figshare_submit.py` resolves each `FILES` entry to the
+  right folder via `resolve_file()`. Still open: the `.docx` source of the PDF and
+  whether `requirements.txt`/`add_taxon/` remnants in `Taxonomy/wlist/package/` need
+  preserving before that folder reverts to source-data-only.
