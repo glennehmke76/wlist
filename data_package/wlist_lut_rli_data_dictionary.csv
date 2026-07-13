@@ -1,0 +1,4 @@
+﻿field,type,description
+id,integer,RLI category identifier (numeric key).
+code,character,"Short code (e.g., two-letter code)."
+category,character,Human-readable category/description.

@@ -8,7 +8,7 @@ Also appends a log entry to an ASCII log file in the wlist folder
 (wlist/backup.log) recording date/time, destination, and status.
 
 Usage:
-    python -m wlist.backup
+    python -m wlist.tools.backup
 
 Optional args:
     --when <YYYYmmdd_%H%M%S>  Use explicit timestamp label instead of 'now'.
@@ -70,21 +70,28 @@ def _copytree(src: Path, dst: Path) -> tuple[int, int]:
     return files, size
 
 
-essential_names = {
-    # files that indicate we found the right source folder (defensive)
-    "package_wlist.py",
+essential_paths = {
+    # paths (relative to the domain repo root) that indicate we found the
+    # right source folder (defensive) — updated for the wlist/wlist/{core,
+    # ingest,build,tools} code-package layout (was a flat "package_wlist.py"
+    # check when backup.py lived at the domain repo root)
+    "README.md",
+    os.path.join("wlist", "build", "package_wlist.py"),
 }
 
 
 def run_backup(when: str | None = None, dry_run: bool = False) -> Path:
-    wlist_dir = Path(__file__).resolve().parent  # .../wlist
-    parent = wlist_dir.parent                     # .../wabd (project root)
+    # backup.py now lives at wlist/wlist/tools/backup.py (three levels below
+    # the domain repo root), so climb back up to it rather than assuming
+    # __file__'s immediate parent is the folder to back up.
+    wlist_dir = Path(__file__).resolve().parents[2]  # .../wlist (domain repo root)
+    parent = wlist_dir.parent                        # .../py_proj
     backup_root = parent / "wlist_backup"
     ts = when or _default_timestamp()
     dest = backup_root / ts
 
     # Minimal sanity check: ensure we're backing up the intended folder
-    if not all((wlist_dir / name).exists() for name in essential_names):
+    if not all((wlist_dir / name).exists() for name in essential_paths):
         raise RuntimeError(f"Unexpected source folder, missing required files in {wlist_dir}")
 
     # Prepare messages

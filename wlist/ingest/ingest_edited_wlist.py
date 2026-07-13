@@ -6,7 +6,7 @@ Default source Excel: /Users/glennehmke/Downloads/wlist.xlsx
 Default target table: public.wlist_edited
 
 Usage examples:
-  python -m wlist.ingest_edited_wlist \
+  python -m wlist.ingest.ingest_edited_wlist \
       --xlsx "/Users/glennehmke/Downloads/wlist.xlsx" \
       --table "wlist_edited"
 
@@ -26,9 +26,9 @@ import psycopg2.extras as pgx
 
 # Import get_db_connection whether run as module or script
 try:  # when run as package module
-    from .package_wlist import get_db_connection
+    from ..core.db import get_db_connection
 except Exception:  # when run directly
-    from package_wlist import get_db_connection  # type: ignore
+    from wlist.core.db import get_db_connection  # type: ignore
 
 DEFAULT_XLSX = "/Users/glennehmke/Downloads/wlist.xlsx"
 DEFAULT_TABLE = "wlist_edited"

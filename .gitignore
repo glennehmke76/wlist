@@ -3,3 +3,9 @@ __pycache__/
 .DS_Store
 .ipynb_checkpoints/
 *.log
+
+# Generated data-package build artifacts (ADR-005/006/007): reproducible from
+# dcoredb via `python -m wlist.build.package_wlist` — not committed. Only the
+# curated DATA_PACKAGE.md field dictionary and figshare tooling are tracked.
+/data_package/build/*
+!/data_package/build/.gitkeep

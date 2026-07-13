@@ -2,15 +2,15 @@
 """
 Export extended wlist fields to CSV and/or a formatted Excel workbook.
 
-- Connects via wlist.package_wlist.get_db_connection()/fetch_dataframe
+- Connects via wlist.build.package_wlist (re-exports wlist.core.db.get_db_connection) + fetch_dataframe
 - Executes the provided SQL (adjusted for minor syntax issues)
 - Default output: Excel to /Users/glennehmke/MEGA/Taxonomy/wlist/wlist_extended.xlsx
 - Optional: CSV to /Users/glennehmke/MEGA/Taxonomy/wlist/wlist_extended.csv
 
 Run examples:
-  python -m wlist.export_wlist_extended                 # Excel only (default)
-  python -m wlist.export_wlist_extended --csv           # Excel + CSV
-  python -m wlist.export_wlist_extended --no-excel      # CSV only (if --csv given)
+  python -m wlist.tools.export_wlist_extended                 # Excel only (default)
+  python -m wlist.tools.export_wlist_extended --csv           # Excel + CSV
+  python -m wlist.tools.export_wlist_extended --no-excel      # CSV only (if --csv given)
 """
 #%%
 from __future__ import annotations
@@ -29,9 +29,9 @@ if PROJ_ROOT not in sys.path:
 
 # Import DB/CSV helpers (support both package and script execution contexts)
 try:
-    from . import package_wlist as pw  # type: ignore
+    from ..build import package_wlist as pw  # type: ignore
 except Exception:  # pragma: no cover
-    import package_wlist as pw  # type: ignore
+    from wlist.build import package_wlist as pw  # type: ignore
 
 # Output paths (absolute, per issue description)
 CSV_PATH = "/Users/glennehmke/MEGA/Taxonomy/wlist/wlist_extended.csv"

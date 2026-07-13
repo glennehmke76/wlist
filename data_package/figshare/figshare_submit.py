@@ -55,14 +55,37 @@ except ImportError:
 FIGSHARE_TOKEN = os.environ.get("FIGSHARE_TOKEN", "")  # Set via env var; see Usage above
 
 BASE_URL = "https://api.figshare.com/v2"
-PACKAGE_DIR = Path(__file__).parent  # Directory containing this script
+# Built (generated, git-ignored) deposit artifacts live in data_package/build/,
+# a sibling of this figshare/ folder (ADR-005/006).
+BUILD_DIR = Path(__file__).parent.parent / "build"
+# Curated (hand-authored, git-tracked) deposit files live directly under
+# data_package/ — package_wlist.py doesn't generate these (ADR-007 surprise).
+DATA_PACKAGE_DIR = Path(__file__).parent.parent
+PACKAGE_DIR = BUILD_DIR  # back-compat alias; prefer BUILD_DIR/DATA_PACKAGE_DIR above
 
 # Institution group ID — set to your institution's integer group ID if submitting
 # to an institutional portal (e.g. CDU figshare). Leave as None for personal account.
 GROUP_ID = None  # e.g. 12345
 
-# Files to upload (relative to PACKAGE_DIR).
-# Order matters — README first, main data second.
+# Files to upload, in upload order (README first, main data second). Most are
+# generated into BUILD_DIR by package_wlist.py; the curated ones map to a local
+# filename under DATA_PACKAGE_DIR (differs for README.md, kept locally as
+# README_figshare.md to avoid clashing with the repo/code-package READMEs).
+CURATED_FILES = {
+    "README.md": "README_figshare.md",
+    "A working list of Australian birds.pdf": "A working list of Australian birds.pdf",
+    "wlist_core_data_dictionary.csv": "wlist_core_data_dictionary.csv",
+    "wlist_lut_rli_data_dictionary.csv": "wlist_lut_rli_data_dictionary.csv",
+}
+
+
+def resolve_file(upload_name: str) -> Path:
+    """Return the local path to read for a given figshare upload filename."""
+    if upload_name in CURATED_FILES:
+        return DATA_PACKAGE_DIR / CURATED_FILES[upload_name]
+    return BUILD_DIR / upload_name
+
+
 FILES = [
     "README.md",
     "A working list of Australian birds.pdf",
@@ -289,7 +312,7 @@ def dry_run():
     print(f"\nFiles to upload ({len(FILES)}):")
     total = 0
     for f in FILES:
-        p = PACKAGE_DIR / f
+        p = resolve_file(f)
         if p.exists():
             size = p.stat().st_size
             total += size
@@ -310,7 +333,7 @@ def create_and_upload():
 
     print("Uploading files:")
     for filename in FILES:
-        path = PACKAGE_DIR / filename
+        path = resolve_file(filename)
         if not path.exists():
             print(f"  ⚠️  SKIPPED: {filename} not found at {path}")
             continue

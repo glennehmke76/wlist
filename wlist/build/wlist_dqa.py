@@ -293,14 +293,14 @@ def pass_fail(condition):
 
 
 def parse_schema_constraints_from_ddl():
-    """Parse wlist/wlist_ddl.sql to extract a simple constraints catalog.
+    """Parse resources/sql/runtime/wlist_ddl.sql to extract a simple constraints catalog.
 
     Returns a list of dicts with keys: constraint, table, type, applies, purpose.
     The parsing is tailored to the repository's DDL format and constraint names.
     If the DDL file is not found or cannot be parsed, returns an empty list.
     """
     here = os.path.dirname(__file__)
-    ddl_path = os.path.join(here, "wlist_ddl.sql")
+    ddl_path = os.path.join(here, "..", "resources", "sql", "runtime", "wlist_ddl.sql")
     if not os.path.exists(ddl_path):
         return []
 

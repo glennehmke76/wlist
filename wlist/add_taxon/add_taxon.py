@@ -3,7 +3,7 @@
 add_taxon.py — Add one or more rows to wlist using the stored procedure wlist_add_row.
 
 Features
-- Uses existing psycopg2 connection from package_wlist.get_db_connection()
+- Uses existing psycopg2 connection from wlist.core.db.get_db_connection()
 - All-or-nothing transaction (entire batch commits or rolls back)
 - Dry-run mode to validate and capture server NOTICEs but roll back at the end
 - Accepts CSV (friendly headers supported) or JSON input
@@ -11,9 +11,9 @@ Features
 
 Usage examples
 - Dry run from CSV (no DB changes):
-    python -m wlist.add_taxon --csv /path/to/new_rows.csv --dry-run
+    python -m wlist.add_taxon.add_taxon --csv /path/to/new_rows.csv --dry-run
 - Commit batch from JSON:
-    python -m wlist.add_taxon --json /path/to/new_rows.json
+    python -m wlist.add_taxon.add_taxon --json /path/to/new_rows.json
 
 CSV headers: you can use friendly headers (without p_ prefix) and they will be mapped.
 Missing columns are sent as NULL.
@@ -27,9 +27,9 @@ from typing import Iterable, Mapping
 
 # Prefer package import when running as module, fall back to local import when run as script
 try:  # pragma: no cover
-    from wlist.package_wlist import get_db_connection  # type: ignore
+    from ..core.db import get_db_connection  # type: ignore
 except Exception:  # pragma: no cover
-    from package_wlist import get_db_connection  # type: ignore
+    from wlist.core.db import get_db_connection  # type: ignore
 
 # Parameter order of the stored procedure wlist_add_row
 PARAMS_ORDER = [

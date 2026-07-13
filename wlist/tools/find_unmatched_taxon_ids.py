@@ -31,9 +31,9 @@ import pandas as pd
 
 # Import package_wlist for DB connection and query, whether run as module or script
 try:  # when run as part of package
-    from . import package_wlist as _pw
+    from ..build import package_wlist as _pw
 except Exception:  # when run as a standalone script
-    import package_wlist as _pw  # type: ignore
+    from wlist.build import package_wlist as _pw  # type: ignore
 
 DEFAULT_ALIVLIST = "/Users/glennehmke/MEGA/Taxonomy/wlist/wlist_alivlist_master.csv"
 DEFAULT_CORE = "wlist"

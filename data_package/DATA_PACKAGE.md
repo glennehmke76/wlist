@@ -1,7 +1,10 @@
-wlist packaging outputs (CSV and SQL)
+wlist data package — field dictionary and provenance (DATA_PACKAGE.md)
+
+Promoted 2026-07-13 from `wlist_package.md` per ADR-004/006 (vocabulary: this is
+the **data package** field dictionary, not the code **package**).
 
 Overview
-- This document describes the outputs produced by wlist/package_wlist.py. The script exports three CSV files and a single SQL dump containing CREATE TABLE and INSERT statements.
+- This document describes the outputs produced by wlist/build/package_wlist.py. The script exports three CSV files and a single SQL dump containing CREATE TABLE and INSERT statements.
 - Intent: provide simple, portable extracts for sharing and downstream use without requiring access to the operational database.
 
 How to run
@@ -12,24 +15,32 @@ How to run
   - DCORE_PASSWORD (no default — set via env var or `~/.pgpass`)
   - DCORE_PORT (5432)
 - Then run:
-  - python -m wlist.package_wlist
+  - python -m wlist.build.package_wlist
 
 Output location and files
-- Base output directory (hard-coded in the script): /Users/glennehmke/MEGA/Taxonomy/wlist
+- Base output directory: data_package/build/ (in this repo — ADR-005; retargeted from
+  the former hard-coded out-of-repo /Users/glennehmke/MEGA/Taxonomy/wlist/package)
   - wlist_core.csv
   - lut_rli.csv
   - avilist_changes.csv
   - wlist_core.sql
-  - wlist.ddl (copy of repository DDL: wlist/wlist_ddl.sql)
+  - wlist.ddl (see "Known gap" note below — not actually copied from a repo source file)
 - Note: If you change OUTPUT_DIR in package_wlist.py, paths will update accordingly.
+- Generated build outputs are git-ignored (see `.gitignore`); this document and the
+  figshare tooling under `data_package/figshare/` are what's tracked in git.
 
-Additional artifact (checked into this repo)
-- wlist/wlist_ddl.sql — schema-only DDL for wlist and lut_rli, including constraints, indexes, and comments (no data). Use with psql or any PostgreSQL client to create the schema.
+Known gap (found verifying ADR-007, not yet resolved)
+- This document (and `wlist_dqa.py`'s DDL parser) both refer to a repository source
+  file `resources/sql/runtime/wlist_ddl.sql` — it does not exist anywhere in the repo
+  or its history. `export_schema_ddl()` in `package_wlist.py` generates the `wlist.ddl`
+  build artifact from a hard-coded `WLIST_DDL` string inside that script, not from a
+  checked-in source file — so the build still works, but "copy of repository DDL"
+  below is aspirational, not an actual file yet.
 
 Data integrity controls in the outputs
 - Primary keys
   - The SQL dump defines a primary key on public.wlist(taxon_id) as part of its CREATE TABLE statement.
-- Constraints (in repository DDL: wlist/wlist_ddl.sql; exported to OUTPUT_DIR as wlist.ddl)
+- Constraints (per the `WLIST_DDL` string in `package_wlist.py`; exported to OUTPUT_DIR as wlist.ddl)
   - Unique: wlist_taxon_name_ukey on taxon_name; wlist_taxon_scientific_name_ukey on taxon_scientific_name.
   - Foreign key: wlist_aust_rli_fkey (aust_rli → lut_rli.id) ON UPDATE CASCADE ON DELETE SET NULL.
   - Checks: wlist_coastal_range_check (coastal_range IN (1, 2)); wlist_alist_change_check (alist_change IN (0, 0.5, 1)); wlist_ssp_ultrataxon_check (if taxon_level = 'ssp' then is_ultrataxon must be TRUE).
