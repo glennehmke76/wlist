@@ -29,7 +29,7 @@ A **strategic record of logic and decision-making** for the `wlist` package. The
 | ADR-004 | Terminology: domain / package / data package | Accepted (links up to ecosystem D-061) |
 | ADR-005 | Consolidate into `py_proj/wlist`; adopt trends target layout | Done — executed 2026-07-13 (Claude Code, Track B) |
 | ADR-006 | Formalise the figshare **data package** | Done — `data_package/` structure executed 2026-07-13 |
-| ADR-007 | Track B execution: SQL classification, code package refactor, `OUTPUT_DIR` retarget | Done — steps 1–3, 5 executed 2026-07-13 (Claude Code); step 4 done (Glenn, curated files copied + figshare file resolution fixed); step 6 (git remote) still open |
+| ADR-007 | Track B execution: SQL classification, code package refactor, `OUTPUT_DIR` retarget | Done — all steps complete (2026-07-13/14); pushed to GitHub `main` |
 
 ---
 
@@ -261,6 +261,16 @@ A **strategic record of logic and decision-making** for the `wlist` package. The
   `data_package/DATA_PACKAGE.md`; updated its stale path references (old `OUTPUT_DIR`,
   `python -m wlist.package_wlist` → `wlist.build.package_wlist`) and added the
   `wlist_ddl.sql`-doesn't-exist note from Step 1.
+
+- **Step 6 — git remote (Glenn's terminal, 2026-07-14):** `wlist-trackB` merged into
+  `master` (merge commit `9028556`), then pushed. GitHub's repo wasn't actually empty
+  as the original hand-off assumed — it had a stray `main` branch (one "Add files via
+  upload" commit, 3 older SQL variants unconnected to local history), and GitHub
+  refuses to delete a repo's default branch via `git push --delete`. Resolved with
+  `git push github master:main --force` instead (same end result Glenn had already
+  approved — main's content replaced by master's — without needing the delete step).
+  `master` now tracks `github/main`. `wlist` is no longer local-only; update any future
+  references in `WORKING_PRACTICES.md`'s per-package git state note accordingly.
 
 - **Consequences:** the domain repo (`py_proj/wlist`) is now internally consistent with
   the `trends` exemplar layout end-to-end for everything Claude Code could verify/run.
